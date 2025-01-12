@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>High or Low Dice Game</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background-color: #f4f4f9;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      color: #333;
+    }
+    .button {
+      padding: 10px 20px;
+      margin: 10px;
+      font-size: 18px;
+      cursor: pointer;
+      border: none;
+      border-radius: 5px;
+    }
+    .high {
+      background-color: #28a745;
+      color: white;
+    }
+    .low {
+      background-color: #dc3545;
+      color: white;
+    }
+    .button:hover {
+      opacity: 0.9;
+    }
+    #result {
+      font-size: 18px;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>High or Low Dice Game</h1>
+  <p>Current Dice Value: <span id="currentDiceValue">4</span></p>
+  <p>Your Coins: <span id="coins">100</span></p>
+  <p>Bet Amount: <span id="bet">10</span></p>
+  <button class="button high" onclick="makeGuess('high')">High</button>
+  <button class="button low" onclick="makeGuess('low')">Low</button>
+  <div id="result"></div>
+
+  <script>
+    let currentDiceValue = 4;
+    let coins = 100;
+    let bet = 10;
+
+    function rollDice() {
+      return Math.floor(Math.random() * 6) + 1;
+    }
+
+    function makeGuess(choice) {
+      const rolledValue = rollDice();
+      let resultMessage = "";
+
+      if ((choice === 'high' && rolledValue > currentDiceValue) ||
+          (choice === 'low' && rolledValue < currentDiceValue)) {
+        coins += bet;
+        resultMessage = `You win! Rolled ${rolledValue}`;
+      } else if (rolledValue === currentDiceValue) {
+        resultMessage = `It’s a draw! Rolled ${rolledValue}`;
+      } else {
+        coins -= bet;
+        resultMessage = `You lose! Rolled ${rolledValue}`;
+      }
+
+      currentDiceValue = rolledValue; // Update the dice value for next round
+
+      // Update UI
+      document.getElementById('currentDiceValue').textContent = currentDiceValue;
+      document.getElementById('coins').textContent = coins;
+      document.getElementById('result').textContent = resultMessage;
+
+      if (coins <= 0) {
+        alert("Game Over! You have no more coins.");
+        location.reload();
+      }
+    }
+  </script>
+</body>
+</html>
