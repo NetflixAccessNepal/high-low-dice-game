@@ -6,15 +6,24 @@
   <title>High or Low Dice Game</title>
   <style>
     body {
+      margin: 0;
       font-family: Arial, sans-serif;
       text-align: center;
-      background-color: #f4f4f9;
-      margin: 0;
-      padding: 20px;
+      color: white;
+      background: linear-gradient(120deg, #3b4cca, #17191f);
+      animation: bg-animation 10s infinite alternate;
     }
+
+    @keyframes bg-animation {
+      0% { background: linear-gradient(120deg, #3b4cca, #17191f); }
+      100% { background: linear-gradient(120deg, #1e293b, #2a2f3f); }
+    }
+
     h1 {
-      color: #333;
+      margin: 20px 0;
+      font-size: 2.5em;
     }
+
     .button {
       padding: 10px 20px;
       margin: 10px;
@@ -23,20 +32,50 @@
       border: none;
       border-radius: 5px;
     }
-    .high {
-      background-color: #28a745;
-      color: white;
+
+    .high { background-color: #28a745; color: white; }
+    .low { background-color: #dc3545; color: white; }
+    .bet-button { background-color: #007bff; color: white; }
+
+    #dice-container {
+      position: relative;
+      height: 200px;
     }
-    .low {
-      background-color: #dc3545;
-      color: white;
+
+    #dice {
+      font-size: 4em;
+      position: absolute;
+      top: 0;
+      left: 0;
+      transition: transform 1s ease-in-out;
     }
-    .button:hover {
-      opacity: 0.9;
-    }
-    #result {
+
+    #result, .info {
       font-size: 18px;
-      margin-top: 20px;
+      margin: 10px 0;
+    }
+
+    #winner-notifications {
+      margin-top: 30px;
+      max-height: 200px;
+      overflow: hidden;
+    }
+
+    .notification {
+      font-size: 14px;
+      color: #ccc;
+      margin: 5px 0;
+    }
+
+    .bet-controls {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .bet-amount {
+      font-size: 18px;
     }
   </style>
 </head>
@@ -45,46 +84,102 @@
   <p>Current Dice Value: <span id="currentDiceValue">4</span></p>
   <p>Your Coins: <span id="coins">100</span></p>
   <p>Bet Amount: <span id="bet">10</span></p>
+
+  <div class="bet-controls">
+    <button class="button bet-button" onclick="adjustBet(-10)">-</button>
+    <button class="button bet-button" onclick="adjustBet(10)">+</button>
+  </div>
+
+  <div id="dice-container">
+    <div id="dice">🎲</div>
+  </div>
+
   <button class="button high" onclick="makeGuess('high')">High</button>
   <button class="button low" onclick="makeGuess('low')">Low</button>
-  <div id="result"></div>
+  <div id="result" class="info"></div>
+
+  <div id="winner-notifications">
+    <!-- Fake winner notifications will appear here -->
+  </div>
 
   <script>
     let currentDiceValue = 4;
     let coins = 100;
     let bet = 10;
 
+    const diceContainer = document.getElementById("dice-container");
+    const dice = document.getElementById("dice");
+    const resultDiv = document.getElementById("result");
+    const coinsDiv = document.getElementById("coins");
+    const betDiv = document.getElementById("bet");
+    const winnerNotifications = document.getElementById("winner-notifications");
+
+    const fakeWinners = Array.from({ length: 1000 }, (_, i) => ({
+      name: `Player${Math.floor(Math.random() * 1000) + 1}`,
+      winnings: Math.floor(Math.random() * 500) + 50,
+    }));
+
     function rollDice() {
       return Math.floor(Math.random() * 6) + 1;
     }
 
-    function makeGuess(choice) {
-      const rolledValue = rollDice();
-      let resultMessage = "";
-
-      if ((choice === 'high' && rolledValue > currentDiceValue) ||
-          (choice === 'low' && rolledValue < currentDiceValue)) {
-        coins += bet;
-        resultMessage = `You win! Rolled ${rolledValue}`;
-      } else if (rolledValue === currentDiceValue) {
-        resultMessage = `It’s a draw! Rolled ${rolledValue}`;
-      } else {
-        coins -= bet;
-        resultMessage = `You lose! Rolled ${rolledValue}`;
-      }
-
-      currentDiceValue = rolledValue; // Update the dice value for next round
-
-      // Update UI
-      document.getElementById('currentDiceValue').textContent = currentDiceValue;
-      document.getElementById('coins').textContent = coins;
-      document.getElementById('result').textContent = resultMessage;
-
-      if (coins <= 0) {
-        alert("Game Over! You have no more coins.");
-        location.reload();
+    function adjustBet(amount) {
+      if (bet + amount > 0 && bet + amount <= coins) {
+        bet += amount;
+        betDiv.textContent = bet;
       }
     }
+
+    function animateDice() {
+      const x = Math.random() * (diceContainer.offsetWidth - 50);
+      const y = Math.random() * (diceContainer.offsetHeight - 50);
+      dice.style.transform = `translate(${x}px, ${y}px) rotate(${Math.random() * 360}deg)`;
+    }
+
+    function makeGuess(choice) {
+      const rolledValue = rollDice();
+      animateDice();
+      dice.textContent = `🎲`;
+
+      setTimeout(() => {
+        dice.textContent = `🎲 ${rolledValue}`;
+        if ((choice === 'high' && rolledValue > currentDiceValue) ||
+            (choice === 'low' && rolledValue < currentDiceValue)) {
+          coins += bet;
+          resultDiv.textContent = `You win! Rolled ${rolledValue}`;
+        } else if (rolledValue === currentDiceValue) {
+          resultDiv.textContent = `It’s a draw! Rolled ${rolledValue}`;
+        } else {
+          coins -= bet;
+          resultDiv.textContent = `You lose! Rolled ${rolledValue}`;
+        }
+
+        currentDiceValue = rolledValue;
+        coinsDiv.textContent = coins;
+
+        if (coins <= 0) {
+          alert("Game Over! You have no more coins.");
+          location.reload();
+        }
+      }, 1000);
+    }
+
+    function generateFakeWinners() {
+      fakeWinners.forEach((winner, index) => {
+        setTimeout(() => {
+          const notification = document.createElement("div");
+          notification.className = "notification";
+          notification.textContent = `${winner.name} won ${winner.winnings} coins!`;
+          winnerNotifications.appendChild(notification);
+
+          if (winnerNotifications.children.length > 10) {
+            winnerNotifications.removeChild(winnerNotifications.children[0]);
+          }
+        }, index * 200);
+      });
+    }
+
+    generateFakeWinners();
   </script>
 </body>
 </html>
